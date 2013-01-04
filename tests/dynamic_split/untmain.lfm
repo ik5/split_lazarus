@@ -24,10 +24,11 @@ object frmDynamicEditorSplittingTest: TfrmDynamicEditorSplittingTest
       Top = 6
       Width = 102
       Caption = 'Vertial Split'
-      OnClick = btnVerticalSplitClick
+      OnClick = btnHorizontalSplitClick
       TabOrder = 0
     end
     object btnHorizontalSplit: TBitBtn
+      Tag = 1
       Left = 132
       Height = 30
       Top = 6

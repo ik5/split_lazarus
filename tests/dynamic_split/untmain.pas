@@ -18,7 +18,6 @@ type
     pnlTop: TPanel;
     synedtMain: TSynEdit;
     procedure btnHorizontalSplitClick(Sender: TObject);
-    procedure btnVerticalSplitClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
     { private declarations }
@@ -46,20 +45,8 @@ begin
  if Assigned(Splitter) then exit;
  if Assigned(Editor) then exit;
 
- CreateEditor(false);
- CreateSplitter(False);
- btnHorizontalSplit.Enabled := False;
- btnVerticalSplit.Enabled   := False;
-end;
-
-procedure TfrmDynamicEditorSplittingTest.btnVerticalSplitClick(Sender: TObject);
-begin
- if Assigned(Splitter) then exit;
- if Assigned(Editor) then exit;
-
- CreateEditor(True);
- CreateSplitter(True);
-
+ CreateEditor(TComponent(Sender).Tag = 0);
+ CreateSplitter(TComponent(Sender).Tag = 0);
  btnHorizontalSplit.Enabled := False;
  btnVerticalSplit.Enabled   := False;
 end;
