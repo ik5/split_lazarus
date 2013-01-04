@@ -37,6 +37,16 @@ object frmDynamicEditorSplittingTest: TfrmDynamicEditorSplittingTest
       OnClick = btnHorizontalSplitClick
       TabOrder = 1
     end
+    object btnCloseSplit: TBitBtn
+      Left = 278
+      Height = 30
+      Top = 6
+      Width = 99
+      Caption = 'Close Split'
+      Enabled = False
+      OnClick = btnCloseSplitClick
+      TabOrder = 2
+    end
   end
   inline synedtMain: TSynEdit
     Left = 0

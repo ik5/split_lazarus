@@ -13,10 +13,12 @@ type
   { TfrmDynamicEditorSplittingTest }
 
   TfrmDynamicEditorSplittingTest = class(TForm)
+    btnCloseSplit: TBitBtn;
     btnHorizontalSplit: TBitBtn;
     btnVerticalSplit: TBitBtn;
     pnlTop: TPanel;
     synedtMain: TSynEdit;
+    procedure btnCloseSplitClick(Sender: TObject);
     procedure btnHorizontalSplitClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
@@ -49,16 +51,26 @@ begin
  CreateSplitter(TComponent(Sender).Tag = 0);
  btnHorizontalSplit.Enabled := False;
  btnVerticalSplit.Enabled   := False;
+ btnCloseSplit.Enabled      := True;
 end;
 
-procedure TfrmDynamicEditorSplittingTest.FormClose(Sender: TObject;
-  var CloseAction: TCloseAction);
+procedure TfrmDynamicEditorSplittingTest.btnCloseSplitClick(Sender: TObject);
 begin
   if Assigned(Splitter) then
     FreeAndNil(Splitter);
 
   if Assigned(Editor) then
-    FreeAndNil(Splitter);
+    FreeAndNil(Editor);
+
+  btnCloseSplit.Enabled      := False;
+  btnVerticalSplit.Enabled   := True;
+  btnHorizontalSplit.Enabled := True;
+end;
+
+procedure TfrmDynamicEditorSplittingTest.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
+begin
+  btnCloseSplitClick(Sender);
 end;
 
 procedure TfrmDynamicEditorSplittingTest.CreateEditor(Vert: Boolean);
