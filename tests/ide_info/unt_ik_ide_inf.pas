@@ -9,56 +9,64 @@ uses
 
 type
 
-  { TForm1 }
+  { TfrmIDEInformation }
 
-  TForm1 = class(TForm)
-    Button1: TButton;
-    Memo1: TMemo;
-    procedure Button1Click(Sender: TObject);
+  TfrmIDEInformation = class(TForm)
+    btnGetInfo: TButton;
+    mmoInfo: TMemo;
+    procedure btnGetInfoClick(Sender: TObject);
   private
     { private declarations }
   public
     { public declarations }
-    procedure MenuSelect(Sender : TObject);
   end;
 
 var
-  Form1: TForm1;
+  frmIDEInformation: TfrmIDEInformation;
+
+procedure Register;
 
 implementation
 uses MenuIntf, IDECommands, SrcEditorIntf;
 
-{ TForm1 }
-
-procedure TForm1.MenuSelect(Sender: TObject);
+procedure MenuSelect(Sender: TObject);
 begin
-  if Assigned(Form1) then
-   Form1.Show
+  if Assigned(frmIDEInformation) then
+   frmIDEInformation.Show
   else begin
-    Form1 := TForm1.Create(TComponent(Sender));
-    Form1.Show;
+    Application.CreateForm(TfrmIDEInformation, frmIDEInformation);
+    frmIDEInformation.Show;
   end;
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure Register;
+begin
+  RegisterIDEMenuCommand(itmSecondaryTools, 'iktestinfosep', '-');
+
+  RegisterIDEMenuCommand(itmSecondaryTools, 'iktestinfo',
+    'IK IDE Testing information', nil, @MenuSelect);
+
+end;
+
+{ TfrmIDEInformation }
+
+procedure TfrmIDEInformation.btnGetInfoClick(Sender: TObject);
 var i : integer;
 begin
-  Memo1.Lines.BeginUpdate;
-  Memo1.Lines.Clear;
-  Memo1.Lines.Add('Menu name: ' + SourceTabMenuRoot.Name);
+  mmoInfo.Lines.BeginUpdate;
+  mmoInfo.Lines.Clear;
+  mmoInfo.Lines.Add('Menu name: ' + SourceTabMenuRoot.Name);
   for i := 0 to SourceTabMenuRoot.Count -1 do
-    Memo1.Lines.Add(#9'First level menu item: ' +SourceTabMenuRoot.Items[i].Name);
+    mmoInfo.Lines.Add(#9'First level menu item: ' +SourceTabMenuRoot.Items[i].Name);
 
-  Memo1.Lines.Add('Current edited file name: '+ SourceEditorManagerIntf.ActiveEditor.FileName);
-  Memo1.Lines.EndUpdate;
+  mmoInfo.Lines.Add('Current edited file name: '+ SourceEditorManagerIntf.ActiveEditor.FileName);
+  mmoInfo.Lines.EndUpdate;
 end;
 
 {$R *.lfm}
 
-initialization
-  Form1 := TForm1.Create(nil);
-  RegisterIDEMenuCommand(mnuTools, 'iktestinfo', 'IK IDE Testing information',@Form1.MenuSelect);
 finalization
-  Form1.Free;
+  if Assigned(frmIDEInformation) then
+    FreeAndNil(frmIDEInformation);
 end.
 
