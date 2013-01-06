@@ -18,12 +18,12 @@
     <Version Release="1"/>
     <Files Count="2">
       <Item1>
-        <Filename Value="unt_ik_ide_info.lfm"/>
-        <Type Value="LFM"/>
+        <Filename Value="unt_ik_ide_inf.pas"/>
+        <UnitName Value="unt_ik_ide_inf"/>
       </Item1>
       <Item2>
-        <Filename Value="unt_ik_ide_info.pas"/>
-        <UnitName Value="unt_ik_ide_info"/>
+        <Filename Value="unt_ik_ide_inf.lfm"/>
+        <Type Value="LFM"/>
       </Item2>
     </Files>
     <Type Value="RunAndDesignTime"/>
