@@ -2,6 +2,7 @@
 <CONFIG>
   <Package Version="4">
     <Name Value="ide_info"/>
+    <Author Value="Ido Kanner"/>
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
