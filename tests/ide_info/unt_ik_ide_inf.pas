@@ -19,27 +19,26 @@ type
     { private declarations }
   public
     { public declarations }
+    procedure MenuSelect(Sender : TObject);
   end;
 
 var
   Form1: TForm1;
 
-procedure MenuSelect(Sender : TObject);
-
 implementation
 uses MenuIntf, IDECommands, SrcEditorIntf;
 
-procedure MenuSelect(Sender: TObject);
+{ TForm1 }
+
+procedure TForm1.MenuSelect(Sender: TObject);
 begin
   if Assigned(Form1) then
    Form1.Show
   else begin
-    Form1 := TForm1.Create(Sender);
+    Form1 := TForm1.Create(TComponent(Sender));
     Form1.Show;
   end;
 end;
-
-{ TForm1 }
 
 procedure TForm1.Button1Click(Sender: TObject);
 var i : integer;
@@ -57,6 +56,9 @@ end;
 {$R *.lfm}
 
 initialization
-  RegisterIDEMenuCommand(mnuTools, 'iktestinfo', 'IK IDE Testing information',@MenuSelect);
+  Form1 := TForm1.Create(nil);
+  RegisterIDEMenuCommand(mnuTools, 'iktestinfo', 'IK IDE Testing information',@Form1.MenuSelect);
+finalization
+  Form1.Free;
 end.
 
