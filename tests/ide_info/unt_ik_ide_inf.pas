@@ -5,7 +5,7 @@ unit unt_ik_ide_inf;
 interface
 
 uses
-  Classes, SysUtils, FileUtil, Forms, Controls, Graphics, Dialogs, StdCtrls;
+  Classes, SysUtils, Forms, Controls, StdCtrls;
 
 type
 
@@ -28,7 +28,10 @@ var
 procedure Register;
 
 implementation
-uses MenuIntf, IDECommands, SrcEditorIntf;
+uses MenuIntf, IDECommands, SrcEditorIntf, LCLType;
+
+resourcestring
+  txtCaption = 'Test IDE Info';
 
 procedure MenuSelect(Sender: TObject);
 begin
@@ -41,12 +44,22 @@ begin
 end;
 
 procedure Register;
+var
+  Key, Key2 : TIDEShortCut;
+  Cat       : TIDECommandCategory;
+  Cmd       : TIDECommand;
 begin
   RegisterIDEMenuCommand(itmSecondaryTools, 'iktestinfosep', '-');
 
-  RegisterIDEMenuCommand(itmSecondaryTools, 'iktestinfo',
-    'IK IDE Testing information', nil, @MenuSelect);
+  Key  := IDEShortCut(VK_UNKNOWN,[],VK_UNKNOWN,[]);
+  Key2 := Key;
+  Cat  := IDECommandList.FindCategoryByName(CommandCategoryToolMenuName);
+  Cmd  := RegisterIDECommand(Cat, txtCaption,
+          'A test tool for building plugins for Lazarus',
+          Key, Key2, nil, @MenuSelect);
 
+  RegisterIDEMenuCommand(itmSecondaryTools, 'iktestinfo',
+    txtCaption, nil, @MenuSelect, Cmd);
 end;
 
 { TfrmIDEInformation }
@@ -67,7 +80,7 @@ end;
 procedure TfrmIDEInformation.FormClose(Sender: TObject;
   var CloseAction: TCloseAction);
 begin
-  CloseAction := caFree;
+  CloseAction := caHide;
 end;
 
 {$R *.lfm}
