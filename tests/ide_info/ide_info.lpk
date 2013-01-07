@@ -6,7 +6,7 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
-        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)/"/>
+        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
         <CompilerMessages>
@@ -20,6 +20,7 @@
     <Files Count="2">
       <Item1>
         <Filename Value="unt_ik_ide_inf.pas"/>
+        <HasRegisterProc Value="True"/>
         <UnitName Value="unt_ik_ide_inf"/>
       </Item1>
       <Item2>
