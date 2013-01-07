@@ -15,6 +15,7 @@ type
     btnGetInfo: TButton;
     mmoInfo: TMemo;
     procedure btnGetInfoClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var CloseAction: TCloseAction);
   private
     { private declarations }
   public
@@ -55,12 +56,18 @@ var i : integer;
 begin
   mmoInfo.Lines.BeginUpdate;
   mmoInfo.Lines.Clear;
-  mmoInfo.Lines.Add('Menu name: ' + SourceTabMenuRoot.Name);
-  for i := 0 to SourceTabMenuRoot.Count -1 do
-    mmoInfo.Lines.Add(#9'First level menu item: ' +SourceTabMenuRoot.Items[i].Name);
+  mmoInfo.Lines.Add('Menu name: ' + SrcEditMenuSectionPages.Name);
+  for i := 0 to SrcEditMenuSectionPages.Count -1 do
+    mmoInfo.Lines.Add(#9'First level menu item: ' +SrcEditMenuSectionPages.Items[i].Name);
 
   mmoInfo.Lines.Add('Current edited file name: '+ SourceEditorManagerIntf.ActiveEditor.FileName);
   mmoInfo.Lines.EndUpdate;
+end;
+
+procedure TfrmIDEInformation.FormClose(Sender: TObject;
+  var CloseAction: TCloseAction);
+begin
+  CloseAction := caFree;
 end;
 
 {$R *.lfm}

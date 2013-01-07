@@ -7,6 +7,7 @@ object frmIDEInformation: TfrmIDEInformation
   Caption = 'IDE Information'
   ClientHeight = 217
   ClientWidth = 320
+  OnClose = FormClose
   LCLVersion = '1.1'
   object mmoInfo: TMemo
     Left = 8
