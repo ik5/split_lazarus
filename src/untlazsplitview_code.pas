@@ -5,13 +5,19 @@ unit untLazSplitView_Code;
 interface
 
 uses
-  Classes, SysUtils, SrcEditorIntf;
+  Classes, SysUtils, SrcEditorIntf, SynEdit, ExtCtrls;
 
 type
+  TSplitType = (stNone, stVert, stHorz);
+
   TTabInfo = record
     ActiveEditor : TSourceEditorInterface;
-    ActiveWindow    :
+    SplitType    : TSplitType;
+    SplitEditor  : TSynEdit;
+    Splitter     : TSplitter;
   end;
+
+
 
 procedure register;
 
