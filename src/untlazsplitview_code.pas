@@ -5,7 +5,7 @@ unit untLazSplitView_Code;
 interface
 
 uses
-  Classes, SysUtils, SrcEditorIntf, SynEdit, ExtCtrls;
+  Classes, SysUtils, SrcEditorIntf, ExtCtrls;
 
 type
   TSplitType = (stNone, stVert, stHorz);
@@ -23,12 +23,14 @@ type
   TSplitView = class(TObject)
   protected
     FTabList : TList;
+    procedure FreeList; virtual;
   public
     constructor Create; virtual;
     destructor Destroy; override;
 
-    procedure ToggleSplitView(Vert : Boolean = false); virtual;
-    procedure CreateSplitter(Vert : Boolean; var Tab : TTabInfo); virtual;
+    procedure ToggleSplitView (Vert : Boolean = false);             virtual;
+    procedure CreateSplitter  (Vert : Boolean; var Tab : TTabInfo); virtual;
+    procedure CreateEditor    (Vert:  Boolean; var Tab : TTabInfo); virtual;
   end;
 
 var
@@ -37,7 +39,7 @@ var
 procedure register;
 
 implementation
-uses MenuIntf, IDECommands, LCLType, Controls;
+uses MenuIntf, IDECommands, LCLType, Controls, SynEdit;
 
 resourcestring
   txtSplitViewPlugins        = 'Split View';
@@ -101,12 +103,7 @@ end;
 
 { TSplitView }
 
-constructor TSplitView.Create;
-begin
-  FTabList := TList.Create;
-end;
-
-destructor TSplitView.Destroy;
+procedure TSplitView.FreeList;
 var i   : integer;
     tab : TTabInfo;
 begin
@@ -115,12 +112,26 @@ begin
       tab := PTabInfo(FTabList.Items[i])^;
 
       if Assigned(tab.SplitEditor) then
-        tab.SplitEditor.Free;
+        begin
+          if Assigned(tab.SplitEditor.EditorControl) then
+            tab.SplitEditor.EditorControl.Free;
+
+          tab.SplitEditor.Free;
+        end;
 
       if Assigned(tab.Splitter) then
         tab.Splitter.Free;
     end;
+end;
 
+constructor TSplitView.Create;
+begin
+  FTabList := TList.Create;
+end;
+
+destructor TSplitView.Destroy;
+begin
+  FreeList;
   FreeAndNil(FTabList);
   inherited Destroy;
 end;
@@ -168,6 +179,34 @@ begin
   end;
 
   Splitter.Visible := True;
+end;
+
+procedure TSplitView.CreateEditor(Vert: Boolean; var Tab: TTabInfo);
+var Editor       : TWinControl;
+    Parent       : TWinControl;
+    ActiveEditor : TWinControl;
+begin
+  Editor       := Tab.SplitEditor.EditorControl;
+  ActiveEditor := Tab.ActiveEditor.EditorControl;
+  Parent       := ActiveEditor.Parent;
+
+  if Assigned(Editor) then
+    Editor.Visible := False
+  else begin
+   Editor := TSynEdit.Create(Parent);
+  end;
+
+  if Vert then
+    Editor.Align := alRight
+  else
+    Editor.Align  := alBottom;
+
+  Editor.Parent  := Parent;
+
+  // magic of shared text buffer from
+  TCustomSynEdit(Editor).ShareTextBufferFrom(TCustomSynEdit(ActiveEditor));
+
+  Editor.Visible := True;
 end;
 
 finalization
