@@ -40,6 +40,10 @@ begin
   Key  := IDEShortCut(VK_UNKNOWN,[],VK_UNKNOWN,[]);
   Key2 := Key;
   Cat  := IDECommandList.FindCategoryByName(txtSplitViewPlugins);
+  if Cat = nil then // register new category
+    Cat := IDECommandList.CreateCategory(nil, 'SplitViewPlugins',
+                                         txtSplitViewPlugins);
+
   Cmd  := RegisterIDECommand(Cat, txtToggleSplitView,
                              txtToggleSplitViewDescription,
                              Key, Key2, nil, nil{@SplitSelect});
