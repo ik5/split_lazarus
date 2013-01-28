@@ -5,6 +5,7 @@
     <CompilerOptions>
       <Version Value="11"/>
       <SearchPaths>
+        <OtherUnitFiles Value="../src"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Other>
@@ -18,7 +19,7 @@
       <Item1>
         <Filename Value="../src/untlazsplitview_code.pas"/>
         <HasRegisterProc Value="True"/>
-        <UnitName Value="untlazsplitview_code"/>
+        <UnitName Value="untLazSplitView_Code"/>
       </Item1>
     </Files>
     <Type Value="RunAndDesignTime"/>
