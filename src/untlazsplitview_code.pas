@@ -220,6 +220,8 @@ begin
   Splitter     := Tab^.Splitter;
   ActiveEditor := Tab^.ActiveEditor.EditorControl;
 
+  DebugLn('TSplitView.CreateSplitter -> Non Allocated Splitter: %p, tab.splitter: %p',
+  [Splitter, tab^.Splitter]);
   Splitter := TSplitter.Create(ActiveEditor.Parent);
   DebugLn('TSplitView.CreateSplitter -> Allocated Splitter: %p, tab.splitter: %p',
   [Splitter, tab^.Splitter]);
@@ -255,6 +257,8 @@ begin
   ActiveEditor := Tab^.ActiveEditor.EditorControl;
   Parent       := ActiveEditor.Parent;
 
+  DebugLn('TSplitView.CreateEditor -> Non Allocated editor: %p, tab^.SplitEditor: %p',
+  [Editor, tab^.SplitEditor]);
   Editor := TSynEdit.Create(Parent);
   DebugLn('TSplitView.CreateEditor -> Allocated editor: %p, tab^.SplitEditor: %p',
   [Editor, tab^.SplitEditor]);
