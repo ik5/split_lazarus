@@ -143,8 +143,21 @@ var ActiveEditor : TSourceEditorInterface;
 begin
   ActiveEditor := SourceEditorManagerIntf.ActiveEditor;
   index        := FTabList.IndexOf(ActiveEditor);
-  //if index > -1 then
-  //  FTabList.Items[index];
+  if index > -1 then
+    tab := PTabInfo(FTabList.Items[index])^
+  else begin
+    tab.ActiveEditor := ActiveEditor;
+    tab.SplitEditor  := TSourceEditorInterface.Create;
+    if Vert then
+      tab.SplitType  := stVert
+    else
+      tab.SplitType  := stHorz;
+
+    index := FTabList.Add(@tab);
+  end;
+
+  CreateEditor   (Vert, tab);
+  CreateSplitter (Vert, tab);
 end;
 
 procedure TSplitView.CreateSplitter(Vert: Boolean; var Tab: TTabInfo);
