@@ -49,9 +49,9 @@ type
     constructor Create; virtual;
     destructor Destroy; override;
 
-    procedure ToggleSplitView (Vert : Boolean = false);             virtual;
-    procedure CreateSplitter  (Vert : Boolean; var Tab : TTabInfo); virtual;
-    procedure CreateEditor    (Vert:  Boolean; var Tab : TTabInfo); virtual;
+    procedure ToggleSplitView (Vert : Boolean = false);         virtual;
+    procedure CreateSplitter  (Vert : Boolean; Tab : PTabInfo); virtual;
+    procedure CreateEditor    (Vert:  Boolean; Tab : PTabInfo); virtual;
   end;
 
 var
@@ -155,25 +155,25 @@ end;
 procedure TSplitView.ToggleSplitView(Vert : Boolean);
 var ActiveEditor : TSourceEditorInterface;
     index        : integer;
-    tab          : TTabInfo;
+    tab          : PTabInfo;
 
  procedure Hide;
  begin
-   if Assigned(tab.SplitEditor) then
+   if Assigned(tab^.SplitEditor) then
      begin
       DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.SplitEditor');
-      tab.SplitEditor.Visible := false;
-      tab.SplitEditor.Free;
+      tab^.SplitEditor.Visible := false;
+      tab^.SplitEditor.Free;
      end
    else begin
      DebugLn('TSplitView.ToggleSplitView -> Hide - tab.SplitEditor is not allocated');
    end;
 
-   if Assigned(tab.Splitter) then
+   if Assigned(tab^.Splitter) then
      begin
       DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.Splitter');
-      tab.Splitter.Visible    := false;
-      tab.Splitter.Free;
+      tab^.Splitter.Visible    := false;
+      tab^.Splitter.Free;
      end
    else begin
     DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.Splitter');
@@ -185,36 +185,37 @@ begin
   index        := FTabList.IndexOf(ActiveEditor);
   if index > -1 then
     begin
-      tab := PTabInfo(FTabList.Items[index])^;
+      tab := FTabList.Items[index];
       Hide;
-		  case tab.SplitType of // nothing more to do if the item is already the
-                            // same as it was. "Toggle" will close it only ...
+		  case tab^.SplitType of // nothing more to do if the item is already the
+                             // same as it was. "Toggle" will close it only ...
 		    stVert : if     Vert then exit;
         stHorz : if not Vert then exit;
       end;
     end
   else begin
-    tab.ActiveEditor := ActiveEditor;
-    tab.SplitEditor  := Nil;
-    tab.Splitter     := Nil;
+    Getmem(tab, SizeOf(PTabInfo));
+    tab^.ActiveEditor := ActiveEditor;
+    tab^.SplitEditor  := Nil;
+    tab^.Splitter     := Nil;
     if Vert then
-      tab.SplitType  := stVert
+      tab^.SplitType  := stVert
     else
-      tab.SplitType  := stHorz;
+      tab^.SplitType  := stHorz;
 
-    index := FTabList.Add(ActiveEditor, @tab);
+    index := FTabList.Add(ActiveEditor, tab);
   end;
 
   CreateEditor   (Vert, tab);
   CreateSplitter (Vert, tab);
 end;
 
-procedure TSplitView.CreateSplitter(Vert: Boolean; var Tab: TTabInfo);
+procedure TSplitView.CreateSplitter(Vert: Boolean; Tab: PTabInfo);
 var Splitter     : TSplitter;
     ActiveEditor : TWinControl;
 begin
-  Splitter     := Tab.Splitter;
-  ActiveEditor := Tab.ActiveEditor.EditorControl;
+  Splitter     := Tab^.Splitter;
+  ActiveEditor := Tab^.ActiveEditor.EditorControl;
 
   if not Assigned(Splitter) then
     Splitter := TSplitter.Create(ActiveEditor.Parent)
@@ -243,13 +244,13 @@ begin
   Splitter.Visible := True;
 end;
 
-procedure TSplitView.CreateEditor(Vert: Boolean; var Tab: TTabInfo);
+procedure TSplitView.CreateEditor(Vert: Boolean; Tab: PTabInfo);
 var Editor       : TWinControl;
     Parent       : TWinControl;
     ActiveEditor : TWinControl;
 begin
-  Editor       := Tab.SplitEditor;
-  ActiveEditor := Tab.ActiveEditor.EditorControl;
+  Editor       := Tab^.SplitEditor;
+  ActiveEditor := Tab^.ActiveEditor.EditorControl;
   Parent       := ActiveEditor.Parent;
 
   if Assigned(Editor) then
