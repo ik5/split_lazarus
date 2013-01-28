@@ -28,6 +28,7 @@ type
     destructor Destroy; override;
 
     procedure ToggleSplitView(Vert : Boolean = false); virtual;
+    procedure CreateSplitter(Vert : Boolean; var Tab : TTabInfo); virtual;
   end;
 
 var
@@ -36,7 +37,7 @@ var
 procedure register;
 
 implementation
-uses MenuIntf, IDECommands, LCLType;
+uses MenuIntf, IDECommands, LCLType, Controls;
 
 resourcestring
   txtSplitViewPlugins        = 'Split View';
@@ -133,6 +134,40 @@ begin
   index        := FTabList.IndexOf(ActiveEditor);
   //if index > -1 then
   //  FTabList.Items[index];
+end;
+
+procedure TSplitView.CreateSplitter(Vert: Boolean; var Tab: TTabInfo);
+var Splitter     : TSplitter;
+    ActiveEditor : TWinControl;
+begin
+  Splitter     := Tab.Splitter;
+  ActiveEditor := Tab.ActiveEditor.EditorControl;
+
+  if not Assigned(Splitter) then
+    Splitter := TSplitter.Create(ActiveEditor.Parent)
+  else
+    Splitter.Visible := False;
+
+  Splitter.AutoSnap      := true;
+  Splitter.ResizeControl := ActiveEditor;
+  Splitter.Parent        := ActiveEditor.Parent;
+
+  if Vert then
+    begin
+     Splitter.ResizeAnchor := akRight;
+     Splitter.Align        := alRight;
+     Splitter.AnchorVerticalCenterTo(ActiveEditor);
+     Splitter.Width        := 10;
+    end
+  else
+  begin
+    Splitter.ResizeAnchor  := akBottom;
+    Splitter.Align         := alBottom;
+    Splitter.AnchorHorizontalCenterTo(ActiveEditor);
+    Splitter.Height        := 10;
+  end;
+
+  Splitter.Visible := True;
 end;
 
 finalization
