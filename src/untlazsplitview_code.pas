@@ -5,7 +5,7 @@ unit untLazSplitView_Code;
 interface
 
 uses
-  Classes, SysUtils, SrcEditorIntf, ExtCtrls;
+  Classes, SysUtils, SrcEditorIntf, ExtCtrls, Controls;
 
 type
   TSplitType = (stNone, stVert, stHorz);
@@ -14,7 +14,7 @@ type
   TTabInfo = record
     ActiveEditor : TSourceEditorInterface;
     SplitType    : TSplitType;
-    SplitEditor  : TSourceEditorInterface;
+    SplitEditor  : TWinControl;
     Splitter     : TSplitter;
   end;
 
@@ -39,7 +39,7 @@ var
 procedure register;
 
 implementation
-uses MenuIntf, IDECommands, LCLType, Controls, SynEdit;
+uses MenuIntf, IDECommands, LCLType, SynEdit;
 
 resourcestring
   txtSplitViewPlugins        = 'Split View';
@@ -112,12 +112,7 @@ begin
       tab := PTabInfo(FTabList.Items[i])^;
 
       if Assigned(tab.SplitEditor) then
-        begin
-          if Assigned(tab.SplitEditor.EditorControl) then
-            tab.SplitEditor.EditorControl.Free;
-
           tab.SplitEditor.Free;
-        end;
 
       if Assigned(tab.Splitter) then
         tab.Splitter.Free;
@@ -147,7 +142,8 @@ begin
     tab := PTabInfo(FTabList.Items[index])^
   else begin
     tab.ActiveEditor := ActiveEditor;
-    tab.SplitEditor  := TSourceEditorInterface.Create;
+    tab.SplitEditor  := Nil;
+    tab.Splitter     := Nil;
     if Vert then
       tab.SplitType  := stVert
     else
@@ -199,7 +195,7 @@ var Editor       : TWinControl;
     Parent       : TWinControl;
     ActiveEditor : TWinControl;
 begin
-  Editor       := Tab.SplitEditor.EditorControl;
+  Editor       := Tab.SplitEditor;
   ActiveEditor := Tab.ActiveEditor.EditorControl;
   Parent       := ActiveEditor.Parent;
 
