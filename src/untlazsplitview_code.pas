@@ -159,6 +159,7 @@ var ActiveEditor : TSourceEditorInterface;
 
  procedure Hide;
  begin
+   DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free SplitEditor and Splitter');
    if Assigned(tab^.SplitEditor) then
      begin
       DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.SplitEditor');
@@ -183,8 +184,10 @@ var ActiveEditor : TSourceEditorInterface;
 begin
   ActiveEditor := SourceEditorManagerIntf.ActiveEditor;
   index        := FTabList.IndexOf(ActiveEditor);
+  DebugLn('TSplitView.ToggleSplitView -> Looked for an item index: %d', [index]);
   if index > -1 then
     begin
+      DebugLn('TSplitView.ToggleSplitView -> Found the item');
       tab := FTabList.Items[index];
       Hide;
 		  case tab^.SplitType of // nothing more to do if the item is already the
@@ -217,10 +220,9 @@ begin
   Splitter     := Tab^.Splitter;
   ActiveEditor := Tab^.ActiveEditor.EditorControl;
 
-  if not Assigned(Splitter) then
-    Splitter := TSplitter.Create(ActiveEditor.Parent)
-  else
-    Splitter.Visible := False;
+  Splitter := TSplitter.Create(ActiveEditor.Parent);
+  DebugLn('TSplitView.CreateSplitter -> Allocated Splitter: %p, tab.splitter: %p',
+  [Splitter, tab^.Splitter]);
 
   Splitter.AutoSnap      := true;
   Splitter.ResizeControl := ActiveEditor;
@@ -253,11 +255,9 @@ begin
   ActiveEditor := Tab^.ActiveEditor.EditorControl;
   Parent       := ActiveEditor.Parent;
 
-  if Assigned(Editor) then
-    Editor.Visible := False
-  else begin
-   Editor := TSynEdit.Create(Parent);
-  end;
+  Editor := TSynEdit.Create(Parent);
+  DebugLn('TSplitView.CreateEditor -> Allocated editor: %p, tab^.SplitEditor: %p',
+  [Editor, tab^.SplitEditor]);
 
   if Vert then
     Editor.Align := alRight
