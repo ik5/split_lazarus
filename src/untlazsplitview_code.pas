@@ -26,7 +26,7 @@ unit untLazSplitView_Code;
 interface
 
 uses
-  Classes, SysUtils, SrcEditorIntf, ExtCtrls, Controls, fgl;
+  Classes, SysUtils, SrcEditorIntf, ExtCtrls, fgl, SynEdit;
 
 type
   TSplitType = (stVert, stHorz);
@@ -36,7 +36,7 @@ type
   TTabInfo = class
   protected
     FActiveEditor : TSourceEditorInterface;
-    FSplitEditor  : TWinControl;
+    FSplitEditor  : TCustomSynEdit;
     FSplitter     : TSplitter;
     FSplitType    : TSplitType;
   public
@@ -44,7 +44,7 @@ type
     destructor Destroy; override;
   published
     property ActiveEditor : TSourceEditorInterface read FActiveEditor write FActiveEditor;
-    property SplitEditor  : TWinControl            read FSplitEditor  write FSplitEditor;
+    property SplitEditor  : TCustomSynEdit         read FSplitEditor  write FSplitEditor;
     property Splitter     : TSplitter              read FSplitter     write FSplitter;
     property SplitType    : TSplitType             read FSplitType    write FSplitType;
   end;
@@ -70,7 +70,7 @@ var
 procedure register;
 
 implementation
-uses MenuIntf, IDECommands, LCLType, SynEdit, LCLProc;
+uses MenuIntf, IDECommands, LCLType, LCLProc, Controls;
 
 resourcestring
   txtSplitViewPlugins        = 'Split View';
@@ -183,29 +183,29 @@ var ActiveEditor : TSourceEditorInterface;
     index        : integer;
     tab          : TTabInfo;
 
- procedure Hide;
+ procedure CleanResources; inline;
  begin
-   DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free SplitEditor and Splitter');
+   DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free SplitEditor and Splitter');
    if Assigned(tab.SplitEditor) then
      begin
-      DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.SplitEditor');
+      DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free tab.SplitEditor');
       tab.SplitEditor.Visible := false;
       tab.SplitEditor.Free;
       tab.SplitEditor         := nil;
      end
    else begin
-     DebugLn('TSplitView.ToggleSplitView -> Hide - tab.SplitEditor is not allocated');
+     DebugLn('TSplitView.ToggleSplitView -> CleanResources - tab.SplitEditor is not allocated');
    end;
 
    if Assigned(tab.Splitter) then
      begin
-      DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.Splitter');
+      DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free tab.Splitter');
       tab.Splitter.Visible := false;
       tab.Splitter.Free;
       tab.Splitter         := nil;
      end
    else begin
-    DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.Splitter');
+    DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free tab.Splitter');
    end;
  end;
 
@@ -217,7 +217,7 @@ begin
     begin
       DebugLn('TSplitView.ToggleSplitView -> Found the item');
       tab := TTabInfo(FTabList.Items[index]);
-      Hide;
+      CleanResources;
 		  case tab.SplitType of // nothing more to do if the item is already the
                              // same as it was. "Toggle" will close it only ...
 		    stVert : if     Vert then exit;
@@ -241,77 +241,69 @@ begin
 
   CreateEditor   (Vert, tab);
   CreateSplitter (Vert, tab);
+
+  DebugLn('TSplitView.ToggleSplitView -> done execution');
 end;
 
 procedure TSplitView.CreateSplitter(Vert: Boolean; Tab: TTabInfo);
-var Splitter     : TSplitter;
-    ActiveEditor : TWinControl;
 begin
-  Splitter     := Tab.Splitter;
-  ActiveEditor := Tab.ActiveEditor.EditorControl;
-
-  if not Assigned(Splitter) then
+  if not Assigned(Tab.Splitter) then
     begin
-     Splitter := TSplitter.Create(ActiveEditor.Parent);
+     Tab.Splitter := TSplitter.Create(Tab.ActiveEditor.EditorControl.Parent);
      DebugLn('TSplitView.CreateSplitter -> Initialized splitter');
     end
   else begin
     DebugLn('TSplitView.CreateSplitter -> Spliter already Initialized');
-    Splitter.Visible := False;
+    Tab.Splitter.Visible := False;
   end;
 
-  Splitter.AutoSnap      := true;
-  Splitter.ResizeControl := ActiveEditor;
-  Splitter.Parent        := ActiveEditor.Parent;
+  Tab.Splitter.AutoSnap      := true;
+  Tab.Splitter.ResizeControl := Tab.ActiveEditor.EditorControl;
+  Tab.Splitter.Parent        := Tab.ActiveEditor.EditorControl.Parent;
 
   if Vert then
     begin
-     Splitter.ResizeAnchor := akRight;
-     Splitter.Align        := alRight;
-     Splitter.AnchorVerticalCenterTo(ActiveEditor);
-     Splitter.Width        := 5;
+     Tab.Splitter.ResizeAnchor := akRight;
+     Tab.Splitter.Align        := alRight;
+     Tab.Splitter.AnchorVerticalCenterTo(Tab.ActiveEditor.EditorControl);
+     Tab.Splitter.Width        := 5;
     end
   else
   begin
-    Splitter.ResizeAnchor  := akBottom;
-    Splitter.Align         := alBottom;
-    Splitter.AnchorHorizontalCenterTo(ActiveEditor);
-    Splitter.Height        := 5;
+    Tab.Splitter.ResizeAnchor  := akBottom;
+    Tab.Splitter.Align         := alBottom;
+    Tab.Splitter.AnchorHorizontalCenterTo(Tab.ActiveEditor.EditorControl);
+    Tab.Splitter.Height        := 5;
   end;
 
-  Splitter.Visible := True;
+  Tab.Splitter.Visible := True;
 end;
 
 procedure TSplitView.CreateEditor(Vert: Boolean; Tab: TTabInfo);
-var Editor       : TWinControl;
-    Parent       : TWinControl;
-    ActiveEditor : TWinControl;
 begin
-  Editor       := Tab.SplitEditor;
-  ActiveEditor := Tab.ActiveEditor.EditorControl;
-  Parent       := ActiveEditor.Parent;
 
-  if not Assigned(Editor) then
+  if not Assigned(Tab.SplitEditor) then
     begin
-      Editor := TSynEdit.Create(Parent);
+      Tab.SplitEditor := TSynEdit.Create(Tab.ActiveEditor.EditorControl.Parent);
       DebugLn('TSplitView.CreateEditor -> Initialized Editor');
     end
   else begin
       DebugLn('TSplitView.CreateEditor -> Editor already initialized ');
-      Editor.Visible := false;
+      Tab.SplitEditor.Visible := false;
   end;
 
   if Vert then
-    Editor.Align := alRight
+    Tab.SplitEditor.Align := alRight
   else
-    Editor.Align  := alBottom;
+    Tab.SplitEditor.Align  := alBottom;
 
-  Editor.Parent  := Parent;
+  Tab.SplitEditor.Parent  := Tab.ActiveEditor.EditorControl.Parent;
 
   // magic of shared text buffer from
-  TCustomSynEdit(Editor).ShareTextBufferFrom(TCustomSynEdit(ActiveEditor));
+  TCustomSynEdit(Tab.SplitEditor).ShareTextBufferFrom(
+                                TCustomSynEdit(Tab.ActiveEditor.EditorControl));
 
-  Editor.Visible := True;
+  Tab.SplitEditor.Visible := True;
 end;
 
 finalization
