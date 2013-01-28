@@ -26,7 +26,7 @@ unit untLazSplitView_Code;
 interface
 
 uses
-  Classes, SysUtils, SrcEditorIntf, ExtCtrls, Controls;
+  Classes, SysUtils, SrcEditorIntf, ExtCtrls, Controls, fgl;
 
 type
   TSplitType = (stNone, stVert, stHorz);
@@ -43,7 +43,7 @@ type
 
   TSplitView = class(TObject)
   protected
-    FTabList : TList;
+    FTabList : TFPSMap;
     procedure FreeList; virtual;
   public
     constructor Create; virtual;
@@ -60,7 +60,7 @@ var
 procedure register;
 
 implementation
-uses MenuIntf, IDECommands, LCLType, SynEdit;
+uses MenuIntf, IDECommands, LCLType, SynEdit, LCLProc;
 
 resourcestring
   txtSplitViewPlugins        = 'Split View';
@@ -142,7 +142,7 @@ end;
 
 constructor TSplitView.Create;
 begin
-  FTabList := TList.Create;
+  FTabList := TFPSMap.Create;
 end;
 
 destructor TSplitView.Destroy;
@@ -159,10 +159,25 @@ var ActiveEditor : TSourceEditorInterface;
 
  procedure Hide;
  begin
-   tab.SplitEditor.Visible := false;
-   tab.SplitEditor.Free;
-   tab.Splitter.Visible    := false;
-   tab.Splitter.Free;
+   if Assigned(tab.SplitEditor) then
+     begin
+      DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.SplitEditor');
+      tab.SplitEditor.Visible := false;
+      tab.SplitEditor.Free;
+     end
+   else begin
+     DebugLn('TSplitView.ToggleSplitView -> Hide - tab.SplitEditor is not allocated');
+   end;
+
+   if Assigned(tab.Splitter) then
+     begin
+      DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.Splitter');
+      tab.Splitter.Visible    := false;
+      tab.Splitter.Free;
+     end
+   else begin
+    DebugLn('TSplitView.ToggleSplitView -> Hide - Going to free tab.Splitter');
+   end;
  end;
 
 begin
@@ -187,7 +202,7 @@ begin
     else
       tab.SplitType  := stHorz;
 
-    index := FTabList.Add(@tab);
+    index := FTabList.Add(ActiveEditor, @tab);
   end;
 
   CreateEditor   (Vert, tab);
