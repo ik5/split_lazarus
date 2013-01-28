@@ -5,3 +5,4 @@
 dynamic_split
 tests/ide_info/ide_info.pas
 tests/ide_info/lib/
+package/lazsplitview.pas
