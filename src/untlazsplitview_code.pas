@@ -157,14 +157,14 @@ begin
      Splitter.ResizeAnchor := akRight;
      Splitter.Align        := alRight;
      Splitter.AnchorVerticalCenterTo(ActiveEditor);
-     Splitter.Width        := 10;
+     Splitter.Width        := 5;
     end
   else
   begin
     Splitter.ResizeAnchor  := akBottom;
     Splitter.Align         := alBottom;
     Splitter.AnchorHorizontalCenterTo(ActiveEditor);
-    Splitter.Height        := 10;
+    Splitter.Height        := 5;
   end;
 
   Splitter.Visible := True;
