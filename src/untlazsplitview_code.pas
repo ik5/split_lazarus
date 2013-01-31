@@ -60,8 +60,8 @@ type
     destructor Destroy; override;
 
     procedure ToggleSplitView (Vert : Boolean = false);         virtual;
-    procedure CreateSplitter  (Vert : Boolean; Tab : TTabInfo); virtual;
-    procedure CreateEditor    (Vert:  Boolean; Tab : TTabInfo); virtual;
+    procedure SetSplitter     (Vert : Boolean; Tab : TTabInfo); virtual;
+    procedure SetEditor       (Vert:  Boolean; Tab : TTabInfo); virtual;
   end;
 
 var
@@ -183,9 +183,10 @@ var ActiveEditor : TSourceEditorInterface;
     index        : integer;
     tab          : TTabInfo;
 
- procedure CleanResources; inline;
+ procedure CleanResources(tab: TTabInfo);
  begin
-   DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free SplitEditor and Splitter');
+   DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free SplitEditor (%P) and Splitter (%P)',
+           [Pointer(tab.SplitEditor), Pointer(tab.Splitter)]);
    if Assigned(tab.SplitEditor) then
      begin
       DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free tab.SplitEditor');
@@ -211,13 +212,18 @@ var ActiveEditor : TSourceEditorInterface;
 
 begin
   ActiveEditor := SourceEditorManagerIntf.ActiveEditor;
-  index        := FTabList.IndexOf(ActiveEditor);
+  DebugLn('TSplitView.ToggleSplitView -> ActiveEditor (%P)',
+          [Pointer(ActiveEditor)]);
+  index        := FTabList.IndexOf(Pointer(ActiveEditor));
   DebugLn('TSplitView.ToggleSplitView -> Looked for an item index: %d', [index]);
+
   if index > -1 then
     begin
       DebugLn('TSplitView.ToggleSplitView -> Found the item');
       tab := TTabInfo(FTabList.Items[index]);
-      CleanResources;
+      DebugLn('TSplitView.ToggleSplitView -> tab (%P), SplitEditor(%P), Splitter (%P)',
+              [Pointer(tab), Pointer(tab.SplitEditor), Pointer(tab.Splitter)]);
+      CleanResources(tab);
 		  case tab.SplitType of // nothing more to do if the item is already the
                              // same as it was. "Toggle" will close it only ...
 		    stVert : if     Vert then exit;
@@ -228,34 +234,28 @@ begin
     DebugLn('TSplitView.ToggleSplitView -> No Item was found');
     tab := TTabInfo.Create;
     tab.ActiveEditor := ActiveEditor;
-    tab.SplitEditor  := Nil;
-    tab.Splitter     := Nil;
+    tab.SplitEditor  := TSynEdit.Create(tab.ActiveEditor.EditorControl.Parent);
+    tab.Splitter     := TSplitter.Create(Tab.ActiveEditor.EditorControl.Parent);
     if Vert then
       tab.SplitType  := stVert
     else
       tab.SplitType  := stHorz;
 
-    index := FTabList.Add(ActiveEditor, tab);
+    index := FTabList.Add(Pointer(ActiveEditor), tab);
     DebugLn('TSplitView.ToggleSplitView -> Added new item index: %d', [index]);
+    DebugLn('TSplitView.ToggleSplitView -> tab (%P), SplitEditor(%P), Splitter (%P)',
+           [Pointer(tab), Pointer(tab.SplitEditor), Pointer(tab.Splitter)]);
   end;
 
-  CreateEditor   (Vert, tab);
-  CreateSplitter (Vert, tab);
-
+  SetEditor   (Vert, tab);
+  SetSplitter (Vert, tab);
   DebugLn('TSplitView.ToggleSplitView -> done execution');
 end;
 
-procedure TSplitView.CreateSplitter(Vert: Boolean; Tab: TTabInfo);
+procedure TSplitView.SetSplitter(Vert: Boolean; Tab: TTabInfo);
 begin
-  if not Assigned(Tab.Splitter) then
-    begin
-     Tab.Splitter := TSplitter.Create(Tab.ActiveEditor.EditorControl.Parent);
-     DebugLn('TSplitView.CreateSplitter -> Initialized splitter');
-    end
-  else begin
-    DebugLn('TSplitView.CreateSplitter -> Spliter already Initialized');
-    Tab.Splitter.Visible := False;
-  end;
+  DebugLn('TSplitView.SetSplitter -> Splitter (%P)', [Pointer(Tab.Splitter)]);
+  Tab.Splitter.Visible := False;
 
   Tab.Splitter.AutoSnap      := true;
   Tab.Splitter.ResizeControl := Tab.ActiveEditor.EditorControl;
@@ -279,18 +279,10 @@ begin
   Tab.Splitter.Visible := True;
 end;
 
-procedure TSplitView.CreateEditor(Vert: Boolean; Tab: TTabInfo);
+procedure TSplitView.SetEditor(Vert: Boolean; Tab: TTabInfo);
 begin
-
-  if not Assigned(Tab.SplitEditor) then
-    begin
-      Tab.SplitEditor := TSynEdit.Create(Tab.ActiveEditor.EditorControl.Parent);
-      DebugLn('TSplitView.CreateEditor -> Initialized Editor');
-    end
-  else begin
-      DebugLn('TSplitView.CreateEditor -> Editor already initialized ');
-      Tab.SplitEditor.Visible := false;
-  end;
+  DebugLn('TSplitView.SetEditor -> Editor (%P)', [Pointer(Tab.SplitEditor)]);
+  Tab.SplitEditor.Visible := false;
 
   if Vert then
     Tab.SplitEditor.Align := alRight
@@ -300,7 +292,7 @@ begin
   Tab.SplitEditor.Parent  := Tab.ActiveEditor.EditorControl.Parent;
 
   // magic of shared text buffer from
-  TCustomSynEdit(Tab.SplitEditor).ShareTextBufferFrom(
+  Tab.SplitEditor.ShareTextBufferFrom(
                                 TCustomSynEdit(Tab.ActiveEditor.EditorControl));
 
   Tab.SplitEditor.Visible := True;
