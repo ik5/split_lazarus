@@ -214,15 +214,20 @@ begin
   ActiveEditor := SourceEditorManagerIntf.ActiveEditor;
   DebugLn('TSplitView.ToggleSplitView -> ActiveEditor (%P)',
           [Pointer(ActiveEditor)]);
-  index        := FTabList.IndexOf(Pointer(ActiveEditor));
+  index        := FTabList.IndexOf(ActiveEditor);
   DebugLn('TSplitView.ToggleSplitView -> Looked for an item index: %d', [index]);
 
   if index > -1 then
     begin
       DebugLn('TSplitView.ToggleSplitView -> Found the item');
+
       tab := TTabInfo(FTabList.Items[index]);
+
+      DebugLn('TSplitView.ToggleSplitView -> FTabList.Items[index] (%P)',
+      [FTabList.Items[index]]);
       DebugLn('TSplitView.ToggleSplitView -> tab (%P), SplitEditor(%P), Splitter (%P)',
               [Pointer(tab), Pointer(tab.SplitEditor), Pointer(tab.Splitter)]);
+
       CleanResources(tab);
 		  case tab.SplitType of // nothing more to do if the item is already the
                              // same as it was. "Toggle" will close it only ...
@@ -241,7 +246,7 @@ begin
     else
       tab.SplitType  := stHorz;
 
-    index := FTabList.Add(Pointer(ActiveEditor), tab);
+    index := FTabList.Add(ActiveEditor, tab);
     DebugLn('TSplitView.ToggleSplitView -> Added new item index: %d', [index]);
     DebugLn('TSplitView.ToggleSplitView -> tab (%P), SplitEditor(%P), Splitter (%P)',
            [Pointer(tab), Pointer(tab.SplitEditor), Pointer(tab.Splitter)]);
@@ -294,7 +299,13 @@ begin
   // magic of shared text buffer from
   Tab.SplitEditor.ShareTextBufferFrom(
                                 TCustomSynEdit(Tab.ActiveEditor.EditorControl));
-
+  with TSynEdit(Tab.ActiveEditor.EditorControl) do
+   begin
+     Tab.SplitEditor.Highlighter       := Highlighter;
+     Tab.SplitEditor.HighlightAllColor := HighlightAllColor;
+     Tab.SplitEditor.Font              := Font;
+     Tab.SplitEditor.Gutter            := Gutter;
+   end;
   Tab.SplitEditor.Visible := True;
 end;
 
