@@ -206,7 +206,7 @@ var ActiveEditor : TSourceEditorInterface;
       tab.Splitter         := nil;
      end
    else begin
-    DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free tab.Splitter');
+    DebugLn('TSplitView.ToggleSplitView -> CleanResources - tab.Splitter is not allocated');
    end;
  end;
 
