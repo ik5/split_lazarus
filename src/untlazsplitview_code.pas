@@ -221,7 +221,7 @@ begin
     begin
       DebugLn('TSplitView.ToggleSplitView -> Found the item');
 
-      tab := TTabInfo(FTabList.Items[index]);
+      tab := TTabInfo(FTabList.data[index]);
 
       DebugLn('TSplitView.ToggleSplitView -> FTabList.Items[index] (%P)',
       [FTabList.Items[index]]);
@@ -229,9 +229,9 @@ begin
               [Pointer(tab), Pointer(tab.SplitEditor), Pointer(tab.Splitter)]);
 
       CleanResources(tab);
-		  case tab.SplitType of // nothing more to do if the item is already the
+      case tab.SplitType of // nothing more to do if the item is already the
                              // same as it was. "Toggle" will close it only ...
-		    stVert : if     Vert then exit;
+        stVert : if     Vert then exit;
         stHorz : if not Vert then exit;
       end;
     end
