@@ -299,6 +299,7 @@ begin
   // magic of shared text buffer from
   Tab.SplitEditor.ShareTextBufferFrom(
                                 TCustomSynEdit(Tab.ActiveEditor.EditorControl));
+
   with TSynEdit(Tab.ActiveEditor.EditorControl) do
    begin
      Tab.SplitEditor.Highlighter       := Highlighter;
