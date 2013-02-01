@@ -26,7 +26,7 @@ unit untLazSplitView_Code;
 interface
 
 uses
-  Classes, SysUtils, SrcEditorIntf, ExtCtrls, fgl, SynEdit;
+  Classes, SysUtils, SrcEditorIntf, ExtCtrls, SynEdit;
 
 type
   TSplitType = (stVert, stHorz);
@@ -42,6 +42,9 @@ type
   public
     constructor Create; Virtual;
     destructor Destroy; override;
+
+    procedure FreeSplitter;
+    procedure FreeEditor;
   published
     property ActiveEditor : TSourceEditorInterface read FActiveEditor write FActiveEditor;
     property SplitEditor  : TCustomSynEdit         read FSplitEditor  write FSplitEditor;
@@ -53,7 +56,8 @@ type
 
   TSplitView = class(TObject)
   protected
-    FTabList : TFPSMap;
+    FEditorList : TList;
+    FTabList    : TList;
     procedure FreeList; virtual;
   public
     constructor Create; virtual;
@@ -70,7 +74,7 @@ var
 procedure register;
 
 implementation
-uses MenuIntf, IDECommands, LCLType, LCLProc, Controls;
+uses MenuIntf, IDECommands, LCLType, LCLProc, Controls, SynEditHighlighter;
 
 resourcestring
   txtSplitViewPlugins        = 'Split View';
@@ -144,13 +148,31 @@ end;
 
 destructor TTabInfo.Destroy;
 begin
-  if Assigned(FSplitter) then
-    FreeAndNil(FSplitter);
-
-  if Assigned(FSplitEditor) then
-    FreeAndNil(FSplitEditor);
-
+  FreeSplitter;
+  FreeEditor;
   inherited Destroy;
+end;
+
+procedure TTabInfo.FreeSplitter;
+begin
+  if Assigned(FSplitter) then
+    begin
+      FSplitter.Visible := False;
+      FreeAndNil(FSplitter);
+    end;
+end;
+
+procedure TTabInfo.FreeEditor;
+begin
+  if Assigned(FSplitEditor) then
+    begin
+      DebugLn('TTabInfo.FreeEditor - Going to Hide the editor');
+      FSplitEditor.Visible     := False;
+      DebugLn('TTabInfo.FreeEditor - Going to make Highlighter nil');
+      FSplitEditor.Highlighter := nil;
+      DebugLn('TTabInfo.FreeEditor - Going to free the editor');
+      FreeAndNil(FSplitEditor);
+    end;
 end;
 
 { TSplitView }
@@ -168,13 +190,15 @@ end;
 
 constructor TSplitView.Create;
 begin
-  FTabList := TFPSMap.Create;
+  FTabList    := TList.Create;
+  FEditorList := TList.Create;
 end;
 
 destructor TSplitView.Destroy;
 begin
   FreeList;
   FreeAndNil(FTabList);
+  FreeAndNil(FEditorList);
   inherited Destroy;
 end;
 
@@ -187,44 +211,46 @@ var ActiveEditor : TSourceEditorInterface;
  begin
    DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free SplitEditor (%P) and Splitter (%P)',
            [Pointer(tab.SplitEditor), Pointer(tab.Splitter)]);
+
+   if Assigned(tab.Splitter) then
+     begin
+      DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free tab.Splitter');
+      tab.FreeSplitter;
+      DebugLn('TSplitView.ToggleSplitView -> CleanResources - Splitter is free');
+     end
+   else begin
+    DebugLn('TSplitView.ToggleSplitView -> CleanResources - tab.Splitter is not allocated');
+   end;
+
    if Assigned(tab.SplitEditor) then
      begin
       DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free tab.SplitEditor');
-      tab.SplitEditor.Visible := false;
-      tab.SplitEditor.Free;
-      tab.SplitEditor         := nil;
+      tab.FreeEditor;
+      DebugLn('TSplitView.ToggleSplitView -> CleanResources - SplitEditor is free');
      end
    else begin
      DebugLn('TSplitView.ToggleSplitView -> CleanResources - tab.SplitEditor is not allocated');
    end;
 
-   if Assigned(tab.Splitter) then
-     begin
-      DebugLn('TSplitView.ToggleSplitView -> CleanResources - Going to free tab.Splitter');
-      tab.Splitter.Visible := false;
-      tab.Splitter.Free;
-      tab.Splitter         := nil;
-     end
-   else begin
-    DebugLn('TSplitView.ToggleSplitView -> CleanResources - tab.Splitter is not allocated');
-   end;
+   DebugLn('TSplitView.ToggleSplitView -> CleanResources - Done freeing stuff');
  end;
 
 begin
   ActiveEditor := SourceEditorManagerIntf.ActiveEditor;
   DebugLn('TSplitView.ToggleSplitView -> ActiveEditor (%P)',
           [Pointer(ActiveEditor)]);
-  index        := FTabList.IndexOf(ActiveEditor);
+  index        := FEditorList.IndexOf(ActiveEditor);
   DebugLn('TSplitView.ToggleSplitView -> Looked for an item index: %d', [index]);
 
   if index > -1 then
     begin
       DebugLn('TSplitView.ToggleSplitView -> Found the item');
 
-      tab := TTabInfo(FTabList.data[index]);
+      tab := TTabInfo(FTabList.Items[index]);
 
       DebugLn('TSplitView.ToggleSplitView -> FTabList.Items[index] (%P)',
       [FTabList.Items[index]]);
+
       DebugLn('TSplitView.ToggleSplitView -> tab (%P), SplitEditor(%P), Splitter (%P)',
               [Pointer(tab), Pointer(tab.SplitEditor), Pointer(tab.Splitter)]);
 
@@ -246,7 +272,9 @@ begin
     else
       tab.SplitType  := stHorz;
 
-    index := FTabList.Add(ActiveEditor, tab);
+    index := FEditorList.Add(ActiveEditor);
+
+    FTabList.Insert(index, tab);
     DebugLn('TSplitView.ToggleSplitView -> Added new item index: %d', [index]);
     DebugLn('TSplitView.ToggleSplitView -> tab (%P), SplitEditor(%P), Splitter (%P)',
            [Pointer(tab), Pointer(tab.SplitEditor), Pointer(tab.Splitter)]);
@@ -302,10 +330,9 @@ begin
 
   with TSynEdit(Tab.ActiveEditor.EditorControl) do
    begin
-     Tab.SplitEditor.Highlighter       := Highlighter;
-     Tab.SplitEditor.HighlightAllColor := HighlightAllColor;
-     Tab.SplitEditor.Font              := Font;
-     Tab.SplitEditor.Gutter            := Gutter;
+     Tab.SplitEditor.Highlighter := Highlighter;
+     Tab.SplitEditor.Font.Assign(Font);
+     Tab.SplitEditor.Gutter.Assign(Gutter);
    end;
   Tab.SplitEditor.Visible := True;
 end;
