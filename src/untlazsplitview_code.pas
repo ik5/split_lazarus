@@ -259,7 +259,7 @@ begin
                              // same as it was. "Toggle" will close it only ...
         stVert : if     Vert then
                   begin
-                   Tab.SplitType := stNone;
+                    Tab.SplitType := stNone;
                    exit;
                   end;
         stHorz : if not Vert then
@@ -268,6 +268,11 @@ begin
                     exit;
                    end;
       end;
+
+      if Vert then
+        Tab.SplitType := stVert
+      else
+        Tab.SplitType := stHorz;
     end
   else begin
     DebugLn('TSplitView.ToggleSplitView -> No Item was found');
