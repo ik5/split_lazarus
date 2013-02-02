@@ -232,7 +232,6 @@ var ActiveEditor : TSourceEditorInterface;
      DebugLn('TSplitView.ToggleSplitView -> CleanResources - tab.SplitEditor is not allocated');
    end;
 
-   Tab.SplitType := stNone;
    DebugLn('TSplitView.ToggleSplitView -> CleanResources - Done freeing stuff');
  end;
 
@@ -258,8 +257,16 @@ begin
       CleanResources(tab);
       case tab.SplitType of // nothing more to do if the item is already the
                              // same as it was. "Toggle" will close it only ...
-        stVert : if     Vert then exit;
-        stHorz : if not Vert then exit;
+        stVert : if     Vert then
+                  begin
+                   Tab.SplitType := stNone;
+                   exit;
+                  end;
+        stHorz : if not Vert then
+                   begin
+                    Tab.SplitType := stNone;
+                    exit;
+                   end;
       end;
     end
   else begin
@@ -288,8 +295,18 @@ end;
 
 procedure TSplitView.SetSplitter(Vert: Boolean; Tab: TTabInfo);
 begin
-  DebugLn('TSplitView.SetSplitter -> Splitter (%P)', [Pointer(Tab.Splitter)]);
-  Tab.Splitter.Visible := False;
+  DebugLn('TSplitView.SetSplitter -> Entering: Splitter (%P)',
+  [Pointer(Tab.Splitter)]);
+
+  if not Assigned(Tab.Splitter) then
+    begin
+      Tab.Splitter := TSplitter.Create(Tab.ActiveEditor.EditorControl.Parent);
+      DebugLn('TSplitView.SetSplitter -> Created: Splitter (%P)',
+             [Pointer(Tab.Splitter)]);
+    end
+  else begin
+    Tab.Splitter.Visible := False;
+  end;
 
   Tab.Splitter.AutoSnap      := true;
   Tab.Splitter.ResizeControl := Tab.ActiveEditor.EditorControl;
@@ -315,8 +332,18 @@ end;
 
 procedure TSplitView.SetEditor(Vert: Boolean; Tab: TTabInfo);
 begin
-  DebugLn('TSplitView.SetEditor -> Editor (%P)', [Pointer(Tab.SplitEditor)]);
-  Tab.SplitEditor.Visible := false;
+  DebugLn('TSplitView.SetEditor -> Enter: Editor (%P)',
+          [Pointer(Tab.SplitEditor)]);
+
+  if not Assigned(Tab.SplitEditor) then
+    begin
+     Tab.SplitEditor := TSynEdit.Create(Tab.ActiveEditor.EditorControl.Parent);
+     DebugLn('TSplitView.SetEditor -> Created: Editor (%P)',
+            [Pointer(Tab.SplitEditor)]);
+    end
+  else begin
+    Tab.SplitEditor.Visible := false;
+  end;
 
   if Vert then
     Tab.SplitEditor.Align := alRight
