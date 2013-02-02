@@ -29,7 +29,7 @@ uses
   Classes, SysUtils, SrcEditorIntf, ExtCtrls, SynEdit;
 
 type
-  TSplitType = (stVert, stHorz);
+  TSplitType = (stNone, stVert, stHorz);
 
   { TTabInfo }
 
@@ -232,6 +232,7 @@ var ActiveEditor : TSourceEditorInterface;
      DebugLn('TSplitView.ToggleSplitView -> CleanResources - tab.SplitEditor is not allocated');
    end;
 
+   Tab.SplitType := stNone;
    DebugLn('TSplitView.ToggleSplitView -> CleanResources - Done freeing stuff');
  end;
 
@@ -332,7 +333,6 @@ begin
    begin
      Tab.SplitEditor.Highlighter := Highlighter;
      Tab.SplitEditor.Font.Assign(Font);
-     Tab.SplitEditor.Gutter.Assign(Gutter);
    end;
   Tab.SplitEditor.Visible := True;
 end;
